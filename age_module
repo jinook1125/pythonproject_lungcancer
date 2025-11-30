@@ -1,0 +1,86 @@
+import pandas as pd 
+url = "https://raw.githubusercontent.com/sujeung728/pythonproject_lungcancer/refs/heads/main/test2.csv"
+LC = pd.read_csv(url)
+# 파일경로로 데이터 불러오기
+# 깃헙에 rss로 불러오기는 크기가 너무 커서 안됨.
+# 데이터베이스 만들어서 관리하는 것도 고려해야 할 듯
+
+LC_sort = LC.sort_values(by='age')
+# 나이순으로 정렬
+
+# age를 숫자로 변환 (중요!)
+# 근데 확인해보니까 숫자였다..!
+LC['age'] = pd.to_numeric(LC['age'], errors='coerce')
+
+# 범주 경계
+bins = [0, 10, 20, 30, 40, 50, 60, 70, 80]
+
+# 범주 번호 1~8
+labels = [1, 2, 3, 4, 5, 6, 7, 8]
+
+# 범주 생성
+# bins >> 경계값, label >> 구간에 붙일 이름, right >> 오른쪽 경계 포함할건지, 20이면 20대에 포함
+LC['age_category'] = pd.cut(LC['age'], bins=bins, labels=labels, right=False)
+
+def search_age(df, age):
+    result = df[df["age"] == age]
+    if result.empty:
+        return None
+    return result
+
+def age_category(df, category): # 매개변수 2개 설정
+    if category not in range(1, 9): # 구간 1부터 9까지 없으면 not in number return
+        print("not in number")
+        return 
+    
+    result = df[df['age_category'] == category] # 나이와 연령대 컬럼이 있는 전체 테이
+    
+    if len(result) == 0:
+        print(f"{category}번 범주에 해당하는 사람이 없습니다.")
+    else:
+        print(f"-----{category}번 범주 환자 리스트 -----")
+        return result
+
+age_category(LC, 7).sort_values('age')
+
+# 범주를 골라서 출력
+import pandas as pd
+import ipywidgets as widgets
+from ipywidgets import interact
+
+# 범주 설
+bins = [0, 10, 20, 30, 40, 50, 60, 70, 80]
+labels = [1, 2, 3, 4, 5, 6, 7, 8]
+LC['age_category'] = pd.cut(LC['age'], bins=bins, labels=labels, right=False)
+
+
+def show_category_table(cat):
+    """
+    cat: 1~8 범주 번호
+    """
+    sub = LC[LC['age_category'] == cat]
+    
+    if sub.empty: # 행이 있는지 확인
+        print(f"{cat}번 범주에 해당하는 데이터가 없습니다.")
+    else:
+        sub_sorted = sub.sort_values(by='age', ascending=True) # 추린데이터를 오름차순정렬
+        display(sub_sorted) # 이쁘게 출력
+        
+interact(
+    show_category_table,
+    cat=widgets.Dropdown(options=[1,2,3,4,5,6,7,8], value=3, description="범주")
+)
+
+from IPython.display import display
+
+age_value = int(input("검색할 나이를 입력하세요: "))
+
+result = search_age(LC, age_value) # 매개변수 df 자리에 LC 데이터
+
+if result is None:
+    print(f"{age_value}세 환자가 없습니다.")
+else:
+    display(result.sort_values("id")) 
+
+
+
